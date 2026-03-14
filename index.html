@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vibe Lab — Project Tracker</title>
+  <title>Vibe Lab 9000 — Project Tracker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -189,7 +189,7 @@
     }
 
     /* Metric bars */
-    .card-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.25rem 0.4rem; margin-bottom: 0.75rem; }
+    .card-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 0.5rem; margin-bottom: 0.75rem; }
     .cm { display: flex; align-items: center; gap: 0.28rem; font-size: 0.66rem; }
     .cm-icon { width: 1rem; flex-shrink: 0; font-size: 0.72rem; }
     .cm-bars { display: flex; gap: 2px; flex: 1; }
@@ -313,7 +313,7 @@
 <header>
   <div class="header-inner">
     <div>
-      <div class="logo">✦ VIBE LAB</div>
+      <div class="logo">✦ VIBE LAB 9000</div>
       <span class="logo-sub">project command center</span>
     </div>
     <div class="header-stats" id="header-stats"></div>
@@ -342,7 +342,6 @@
         <option value="excitement-desc">Excitement ↓</option>
         <option value="passion-desc">Passion ↓</option>
         <option value="fun-desc">Fun ↓</option>
-        <option value="money-desc">Money Potential ↓</option>
         <option value="impact-desc">Life Impact ↓</option>
         <option value="aifit-desc">AI Fit ↓</option>
       </select>
@@ -457,14 +456,6 @@
               </div>
             </div>
             <div class="metric-field">
-              <label>💰 Money Potential</label>
-              <div class="stars" data-field="money">
-                <span class="star" data-val="1">★</span><span class="star" data-val="2">★</span>
-                <span class="star" data-val="3">★</span><span class="star" data-val="4">★</span>
-                <span class="star" data-val="5">★</span>
-              </div>
-            </div>
-            <div class="metric-field">
               <label>🤖 AI Alignment</label>
               <div class="stars" data-field="aifit">
                 <span class="star" data-val="1">★</span><span class="star" data-val="2">★</span>
@@ -533,7 +524,6 @@ const CAT_META = {
 
 const METRICS = [
   { key: 'impact',     icon: '💥' },
-  { key: 'money',      icon: '💰' },
   { key: 'aifit',      icon: '🤖' },
   { key: 'excitement', icon: '⚡' },
   { key: 'passion',    icon: '❤️' },
@@ -574,7 +564,7 @@ function seedData() {
       status: 'frying-pan', category: 'productivity',
       repoUrl: '', liveUrl: '', techStack: ['HTML', 'CSS', 'JS'],
       notes: 'This very app!', dateStarted: todayStr(),
-      impact: 4, money: 2, aifit: 5, excitement: 5, passion: 4, fun: 5,
+      impact: 4, aifit: 5, excitement: 5, passion: 4, fun: 5,
       createdAt: new Date().toISOString(),
     },
     {
@@ -583,7 +573,7 @@ function seedData() {
       status: 'marinating', category: 'game',
       repoUrl: '', liveUrl: '', techStack: ['Godot', 'GDScript'],
       notes: 'Need to learn Godot first lol', dateStarted: '',
-      impact: 3, money: 3, aifit: 3, excitement: 5, passion: 5, fun: 5,
+      impact: 3, aifit: 3, excitement: 5, passion: 5, fun: 5,
       createdAt: new Date().toISOString(),
     },
     {
@@ -592,7 +582,7 @@ function seedData() {
       status: 'back-burner', category: 'productivity',
       repoUrl: '', liveUrl: '', techStack: ['Next.js', 'Claude API', 'Supabase'],
       notes: '', dateStarted: '2024-11-01',
-      impact: 5, money: 4, aifit: 5, excitement: 4, passion: 3, fun: 3,
+      impact: 5, aifit: 5, excitement: 4, passion: 3, fun: 3,
       createdAt: new Date().toISOString(),
     },
     {
@@ -601,7 +591,7 @@ function seedData() {
       status: 'on-ice', category: 'art',
       repoUrl: '', liveUrl: '', techStack: ['p5.js', 'Weather API'],
       notes: 'Blocked on finding a free reliable weather API', dateStarted: '2024-09-15',
-      impact: 2, money: 1, aifit: 4, excitement: 4, passion: 4, fun: 5,
+      impact: 2, aifit: 4, excitement: 4, passion: 4, fun: 5,
       createdAt: new Date().toISOString(),
     },
   ];
@@ -838,7 +828,6 @@ function handleSubmit(e) {
     dateStarted: document.getElementById('field-date').value,
     notes:       document.getElementById('field-notes').value.trim(),
     impact:      starValues.impact     || 0,
-    money:       starValues.money      || 0,
     aifit:       starValues.aifit      || 0,
     excitement:  starValues.excitement || 0,
     passion:     starValues.passion    || 0,
