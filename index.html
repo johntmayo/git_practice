@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibe Lab 9000 — Project Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #07071000;
+      --bg-real:  #070710;
+      --bg-2:     #0d0d1a;
+      --bg-3:     #121228;
+      --surface:  rgba(255,255,255,0.04);
+      --surface2: rgba(255,255,255,0.07);
+      --border:   rgba(255,255,255,0.07);
+      --border2:  rgba(255,255,255,0.13);
+      --text:     #eeeef5;
+      --text-2:   #9999b0;
+      --text-3:   #55556a;
+      --purple:   #7c3aed;
+      --pink:     #ec4899;
+      --grad:     linear-gradient(135deg, #7c3aed, #ec4899);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: var(--bg-real);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124,58,237,0.12) 0%, transparent 70%),
+        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+      background-size: 100% 100%, 28px 28px;
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; font-family: inherit; }
+    input, textarea, select { font-family: inherit; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      border-bottom: 1px solid var(--border);
+      background: rgba(7,7,16,0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .header-inner {
+      max-width: 1440px; margin: 0 auto;
+      padding: 0.9rem 2rem;
+      display: flex; align-items: center; gap: 2rem;
+    }
+    .logo {
+      font-size: 1.15rem; font-weight: 900; letter-spacing: -0.02em;
+      background: var(--grad);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      white-space: nowrap; line-height: 1.2;
+    }
+    .logo-sub {
+      font-size: 0.62rem; font-weight: 500; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--text-3);
+      -webkit-text-fill-color: var(--text-3); display: block; margin-top: 1px;
+    }
+    .header-stats { display: flex; gap: 1.8rem; margin-left: auto; }
+    .stat { text-align: center; }
+    .stat-n {
+      font-size: 1.35rem; font-weight: 800; line-height: 1;
+      background: var(--grad);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-l { font-size: 0.6rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+    /* ── MAIN ── */
+    .main { max-width: 1440px; margin: 0 auto; padding: 1.5rem 2rem 5rem; }
+
+    /* ── TOOLBAR ── */
+    .toolbar {
+      display: flex; align-items: center; gap: 0.7rem;
+      margin-bottom: 1rem; flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: var(--grad); color: #fff; border: none;
+      padding: 0.55rem 1.2rem; border-radius: 8px;
+      font-size: 0.85rem; font-weight: 700; letter-spacing: 0.01em;
+      transition: opacity .15s, box-shadow .15s, transform .15s;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { opacity: .88; box-shadow: 0 4px 22px rgba(124,58,237,.4); transform: translateY(-1px); }
+
+    .search-wrap { position: relative; flex: 1; min-width: 160px; max-width: 260px; }
+    .search-wrap svg {
+      position: absolute; left: 0.65rem; top: 50%; transform: translateY(-50%);
+      opacity: .3; pointer-events: none;
+    }
+    #search-input {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); padding: 0.5rem 0.8rem 0.5rem 2.1rem;
+      border-radius: 8px; font-size: 0.82rem; transition: border-color .15s;
+    }
+    #search-input:focus { outline: none; border-color: var(--purple); }
+    #search-input::placeholder { color: var(--text-3); }
+
+    .spacer { flex: 1; }
+
+    .sort-wrap { display: flex; align-items: center; gap: 0.5rem; }
+    .sort-wrap label { font-size: 0.72rem; color: var(--text-3); white-space: nowrap; }
+    #sort-select {
+      background: var(--surface); border: 1px solid var(--border); color: var(--text);
+      padding: 0.5rem 0.8rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;
+      transition: border-color .15s;
+    }
+    #sort-select:focus { outline: none; border-color: var(--purple); }
+
+    /* ── FILTER BAR ── */
+    .filter-bar { display: flex; gap: 1.2rem; margin-bottom: 1.4rem; flex-wrap: wrap; }
+    .filter-group { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
+    .filter-label {
+      font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--text-3); white-space: nowrap; margin-right: 0.15rem;
+    }
+    .pill {
+      padding: 0.28rem 0.75rem; border-radius: 999px; border: 1px solid var(--border);
+      background: transparent; color: var(--text-2); font-size: 0.73rem; font-weight: 500;
+      transition: all .15s; white-space: nowrap;
+    }
+    .pill:hover { border-color: var(--border2); color: var(--text); }
+    .pill.active {
+      background: rgba(124,58,237,.18); border-color: rgba(124,58,237,.5);
+      color: #c4b5fd; font-weight: 600;
+    }
+
+    /* ── RESULTS COUNT ── */
+    .results-count { font-size: 0.75rem; color: var(--text-3); margin-bottom: 0.9rem; }
+
+    /* ── GRID ── */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+
+    /* ── CARD ── */
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card {
+      background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px;
+      padding: 1.15rem; position: relative; overflow: hidden;
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+      display: flex; flex-direction: column;
+      animation: cardIn .25s ease both;
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2.5px;
+      background: var(--status-clr, var(--purple));
+    }
+    .card::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(255,255,255,0.025) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: 0 14px 42px rgba(0,0,0,.45); }
+
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.55rem; gap: 0.5rem; }
+    .card-title { font-size: 1rem; font-weight: 700; line-height: 1.3; flex: 1; word-break: break-word; }
+
+    .score-wrap { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+    .priority-score {
+      font-size: 2rem; font-weight: 900; line-height: 1;
+      background: var(--grad);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      min-width: 3rem; text-align: right;
+    }
+    .score-label { font-size: 0.52rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); text-align: right; margin-top: 1px; }
+
+    .badges { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.65rem; }
+    .badge { padding: 0.17rem 0.5rem; border-radius: 999px; font-size: 0.67rem; font-weight: 600; white-space: nowrap; }
+    .badge-cat { background: rgba(255,255,255,0.06); color: var(--text-2); border: 1px solid var(--border); }
+
+    .card-desc {
+      font-size: 0.8rem; color: var(--text-2); line-height: 1.55; margin-bottom: 0.75rem; flex: 1;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    /* Metric bars */
+    .card-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 0.5rem; margin-bottom: 0.75rem; }
+    .cm { display: flex; align-items: center; gap: 0.28rem; font-size: 0.66rem; }
+    .cm-icon { width: 1rem; flex-shrink: 0; font-size: 0.72rem; }
+    .cm-bars { display: flex; gap: 2px; flex: 1; }
+    .cm-bar { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.07); transition: background .2s; }
+    .cm-bar.on { background: var(--status-clr, var(--purple)); opacity: 0.75; }
+
+    /* Tech tags */
+    .tech-tags { display: flex; gap: 0.28rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+    .tech-tag {
+      padding: 0.11rem 0.42rem; border-radius: 4px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+      font-size: 0.65rem; color: var(--text-3); font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    /* Card footer */
+    .card-footer {
+      border-top: 1px solid var(--border); padding-top: 0.65rem; margin-top: auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 0.4rem;
+    }
+    .card-meta { font-size: 0.68rem; color: var(--text-3); }
+    .card-links { display: flex; gap: 0.5rem; }
+    .card-links a { font-size: 0.68rem; color: var(--purple); opacity: .8; }
+    .card-links a:hover { opacity: 1; color: var(--pink); }
+    .card-actions { display: flex; gap: 0.28rem; margin-left: auto; }
+    .btn-sm {
+      background: var(--surface); border: 1px solid var(--border); color: var(--text-2);
+      padding: 0.22rem 0.5rem; border-radius: 5px; font-size: 0.68rem; transition: all .12s;
+    }
+    .btn-sm:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+    .btn-sm.del:hover { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.35); color: #f87171; }
+
+    /* ── EMPTY STATE ── */
+    .empty { grid-column: 1 / -1; text-align: center; padding: 5rem 2rem; }
+    .empty-icon { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
+    .empty h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .empty p { color: var(--text-2); font-size: 0.85rem; }
+
+    /* ── MODAL ── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      z-index: 200; display: flex; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .overlay.hidden { display: none; }
+
+    .modal {
+      background: var(--bg-2); border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 18px; width: 100%; max-width: 600px; max-height: 92vh;
+      overflow-y: auto; padding: 1.8rem; position: relative;
+    }
+    .modal-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.4rem; }
+    .modal-title {
+      font-size: 1.2rem; font-weight: 800;
+      background: var(--grad);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .modal-close {
+      background: var(--surface); border: 1px solid var(--border); color: var(--text-2);
+      width: 1.9rem; height: 1.9rem; border-radius: 6px; font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center; transition: all .12s;
+    }
+    .modal-close:hover { background: var(--surface2); color: var(--text); }
+
+    /* Form */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+    .fg { display: flex; flex-direction: column; gap: 0.28rem; }
+    .fg.full { grid-column: 1 / -1; }
+    .fg label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); }
+    .fg input, .fg textarea, .fg select {
+      background: var(--bg-3); border: 1px solid var(--border); color: var(--text);
+      padding: 0.52rem 0.72rem; border-radius: 8px; font-size: 0.84rem;
+      transition: border-color .15s; width: 100%;
+    }
+    .fg input:focus, .fg textarea:focus, .fg select:focus { outline: none; border-color: var(--purple); }
+    .fg input::placeholder, .fg textarea::placeholder { color: var(--text-3); }
+    .fg textarea { resize: vertical; min-height: 68px; }
+
+    /* Metrics box */
+    .metrics-box {
+      grid-column: 1 / -1; background: var(--bg-3);
+      border: 1px solid var(--border); border-radius: 10px; padding: 1rem;
+    }
+    .metrics-box-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); margin-bottom: 0.85rem; }
+    .metrics-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .metric-field { display: flex; flex-direction: column; gap: 0.28rem; }
+    .metric-field label { font-size: 0.72rem; font-weight: 600; color: var(--text-2); }
+
+    /* Stars */
+    .stars { display: flex; gap: 0.2rem; }
+    .star { font-size: 1.15rem; cursor: pointer; transition: transform .1s, opacity .1s; opacity: .18; user-select: none; line-height: 1; }
+    .star.lit { opacity: 1; }
+    .star:hover { transform: scale(1.22); }
+
+    /* Modal actions */
+    .modal-actions { display: flex; gap: 0.7rem; justify-content: flex-end; margin-top: 1.3rem; }
+    .btn-cancel {
+      background: var(--surface); border: 1px solid var(--border); color: var(--text-2);
+      padding: 0.58rem 1.2rem; border-radius: 8px; font-size: 0.84rem; transition: all .12s;
+    }
+    .btn-cancel:hover { background: var(--surface2); color: var(--text); }
+    .btn-save {
+      background: var(--grad); color: white; border: none;
+      padding: 0.58rem 1.4rem; border-radius: 8px; font-size: 0.84rem; font-weight: 700;
+      transition: all .15s;
+    }
+    .btn-save:hover { opacity: .88; box-shadow: 0 4px 22px rgba(124,58,237,.4); }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .header-inner { padding: 0.75rem 1rem; }
+      .main { padding: 1rem 1rem 4rem; }
+      .form-grid { grid-template-columns: 1fr; }
+      .fg.full { grid-column: 1; }
+      .metrics-form-grid { grid-template-columns: 1fr; }
+      .header-stats { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="logo">✦ VIBE LAB 9000</div>
+      <span class="logo-sub">project command center</span>
+    </div>
+    <div class="header-stats" id="header-stats"></div>
+  </div>
+</header>
+
+<div class="main">
+  <div class="toolbar">
+    <button class="btn-primary" id="btn-add">+ New Project</button>
+    <div class="search-wrap">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" id="search-input" placeholder="Search projects…">
+    </div>
+    <div class="spacer"></div>
+    <div class="sort-wrap">
+      <label for="sort-select">Sort</label>
+      <select id="sort-select">
+        <option value="priority-desc">Priority ↓</option>
+        <option value="priority-asc">Priority ↑</option>
+        <option value="name-asc">Name A→Z</option>
+        <option value="name-desc">Name Z→A</option>
+        <option value="date-desc">Date (newest)</option>
+        <option value="date-asc">Date (oldest)</option>
+        <option value="excitement-desc">Excitement ↓</option>
+        <option value="passion-desc">Passion ↓</option>
+        <option value="fun-desc">Fun ↓</option>
+        <option value="impact-desc">Life Impact ↓</option>
+        <option value="aifit-desc">AI Fit ↓</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <span class="filter-label">Status</span>
+      <button class="pill active" data-filter="status" data-value="all">All</button>
+      <button class="pill" data-filter="status" data-value="frying-pan">🍳 Frying Pan</button>
+      <button class="pill" data-filter="status" data-value="back-burner">🫕 Back Burner</button>
+      <button class="pill" data-filter="status" data-value="marinating">🥩 Marinating</button>
+      <button class="pill" data-filter="status" data-value="on-ice">❄️ On Ice</button>
+      <button class="pill" data-filter="status" data-value="served">🚀 Served</button>
+      <button class="pill" data-filter="status" data-value="scrapped">🗑️ Scrapped</button>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Type</span>
+      <button class="pill active" data-filter="category" data-value="all">All</button>
+      <button class="pill" data-filter="category" data-value="game">🎮 Game</button>
+      <button class="pill" data-filter="category" data-value="productivity">⚙️ Productivity</button>
+      <button class="pill" data-filter="category" data-value="art">🎨 Art</button>
+      <button class="pill" data-filter="category" data-value="tool">🛠️ Tool</button>
+      <button class="pill" data-filter="category" data-value="other">💡 Other</button>
+    </div>
+  </div>
+
+  <div class="results-count" id="results-count"></div>
+  <div class="grid" id="project-grid"></div>
+</div>
+
+<!-- Modal -->
+<div class="overlay hidden" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title" id="modal-title">New Project</div>
+      <button class="modal-close" id="modal-close" type="button">✕</button>
+    </div>
+    <form id="project-form">
+      <input type="hidden" id="field-id">
+      <div class="form-grid">
+
+        <div class="fg full">
+          <label>Project Name *</label>
+          <input type="text" id="field-name" placeholder="My Killer App" required>
+        </div>
+
+        <div class="fg">
+          <label>Status</label>
+          <select id="field-status">
+            <option value="marinating">🥩 Marinating — still an idea</option>
+            <option value="frying-pan">🍳 Frying Pan — actively cooking</option>
+            <option value="back-burner">🫕 Back Burner — simmering</option>
+            <option value="on-ice">❄️ On Ice — paused</option>
+            <option value="served">🚀 Served — shipped!</option>
+            <option value="scrapped">🗑️ Scrapped — RIP</option>
+          </select>
+        </div>
+
+        <div class="fg">
+          <label>Category</label>
+          <select id="field-category">
+            <option value="game">🎮 Game</option>
+            <option value="productivity">⚙️ Productivity</option>
+            <option value="art">🎨 Art</option>
+            <option value="tool">🛠️ Tool</option>
+            <option value="other">💡 Other</option>
+          </select>
+        </div>
+
+        <div class="fg full">
+          <label>Description</label>
+          <textarea id="field-desc" placeholder="What's the vibe? What does it do?"></textarea>
+        </div>
+
+        <div class="fg">
+          <label>Repo URL</label>
+          <input type="url" id="field-repo" placeholder="https://github.com/…">
+        </div>
+
+        <div class="fg">
+          <label>Live URL</label>
+          <input type="url" id="field-url" placeholder="https://…">
+        </div>
+
+        <div class="fg full">
+          <label>Tech Stack (comma-separated)</label>
+          <input type="text" id="field-tech" placeholder="React, Supabase, Tailwind…">
+        </div>
+
+        <div class="fg">
+          <label>Date Started</label>
+          <input type="date" id="field-date">
+        </div>
+
+        <div class="fg full">
+          <label>Notes</label>
+          <textarea id="field-notes" placeholder="Loose thoughts, links, blockers, next steps…" style="min-height:56px"></textarea>
+        </div>
+
+        <!-- Vibe Metrics -->
+        <div class="metrics-box full">
+          <div class="metrics-box-title">✦ Vibe Metrics — tap to rate 1–5</div>
+          <div class="metrics-form-grid">
+            <div class="metric-field">
+              <label>💥 Life Impact</label>
+              <div class="stars" data-field="impact">
+                <span class="star" data-val="1">★</span><span class="star" data-val="2">★</span>
+                <span class="star" data-val="3">★</span><span class="star" data-val="4">★</span>
+                <span class="star" data-val="5">★</span>
+              </div>
+            </div>
+            <div class="metric-field">
+              <label>🤖 AI Alignment</label>
+              <div class="stars" data-field="aifit">
+                <span class="star" data-val="1">★</span><span class="star" data-val="2">★</span>
+                <span class="star" data-val="3">★</span><span class="star" data-val="4">★</span>
+                <span class="star" data-val="5">★</span>
+              </div>
+            </div>
+            <div class="metric-field">
+              <label>⚡ Excitement</label>
+              <div class="stars" data-field="excitement">
+                <span class="star" data-val="1">★</span><span class="star" data-val="2">★</span>
+                <span class="star" data-val="3">★</span><span class="star" data-val="4">★</span>
+                <span class="star" data-val="5">★</span>
+              </div>
+            </div>
+            <div class="metric-field">
+              <label>❤️ Passion</label>
+              <div class="stars" data-field="passion">
+                <span class="star" data-val="1">★</span><span class="star" data-val="2">★</span>
+                <span class="star" data-val="3">★</span><span class="star" data-val="4">★</span>
+                <span class="star" data-val="5">★</span>
+              </div>
+            </div>
+            <div class="metric-field">
+              <label>🎉 Fun Factor</label>
+              <div class="stars" data-field="fun">
+                <span class="star" data-val="1">★</span><span class="star" data-val="2">★</span>
+                <span class="star" data-val="3">★</span><span class="star" data-val="4">★</span>
+                <span class="star" data-val="5">★</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="btn-cancel">Cancel</button>
+        <button type="submit" class="btn-save">Save Project</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  CONSTANTS
+// ─────────────────────────────────────────────
+const STORAGE_KEY = 'vibelab_v1';
+
+const STATUS_META = {
+  'frying-pan':  { label: '🍳 Frying Pan',  color: '#f97316' },
+  'back-burner': { label: '🫕 Back Burner', color: '#f59e0b' },
+  'marinating':  { label: '🥩 Marinating',  color: '#a78bfa' },
+  'on-ice':      { label: '❄️ On Ice',      color: '#38bdf8' },
+  'served':      { label: '🚀 Served',      color: '#4ade80' },
+  'scrapped':    { label: '🗑️ Scrapped',    color: '#52525b' },
+};
+
+const CAT_META = {
+  'game':         '🎮 Game',
+  'productivity': '⚙️ Productivity',
+  'art':          '🎨 Art',
+  'tool':         '🛠️ Tool',
+  'other':        '💡 Other',
+};
+
+const METRICS = [
+  { key: 'impact',     icon: '💥' },
+  { key: 'aifit',      icon: '🤖' },
+  { key: 'excitement', icon: '⚡' },
+  { key: 'passion',    icon: '❤️' },
+  { key: 'fun',        icon: '🎉' },
+];
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let projects = [];
+let filterStatus   = 'all';
+let filterCategory = 'all';
+let searchQuery    = '';
+let sortBy         = 'priority-desc';
+let starValues     = {};
+
+// ─────────────────────────────────────────────
+//  STORAGE
+// ─────────────────────────────────────────────
+function loadProjects() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    projects = raw ? JSON.parse(raw) : seedData();
+  } catch (e) {
+    projects = seedData();
+  }
+}
+
+function saveProjects() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+}
+
+function seedData() {
+  return [
+    {
+      id: uid(), name: 'Vibe Lab',
+      description: 'A command center for tracking all my vibecode projects. Meta, but necessary.',
+      status: 'frying-pan', category: 'productivity',
+      repoUrl: '', liveUrl: '', techStack: ['HTML', 'CSS', 'JS'],
+      notes: 'This very app!', dateStarted: todayStr(),
+      impact: 4, aifit: 5, excitement: 5, passion: 4, fun: 5,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: uid(), name: 'Dream Platformer',
+      description: 'A surreal 2D platformer with procedurally generated dreamscapes. Yume Nikki meets Celeste.',
+      status: 'marinating', category: 'game',
+      repoUrl: '', liveUrl: '', techStack: ['Godot', 'GDScript'],
+      notes: 'Need to learn Godot first lol', dateStarted: '',
+      impact: 3, aifit: 3, excitement: 5, passion: 5, fun: 5,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: uid(), name: 'AutoJournal',
+      description: 'AI-powered journaling tool that synthesizes your notes into weekly insights and trends.',
+      status: 'back-burner', category: 'productivity',
+      repoUrl: '', liveUrl: '', techStack: ['Next.js', 'Claude API', 'Supabase'],
+      notes: '', dateStarted: '2024-11-01',
+      impact: 5, aifit: 5, excitement: 4, passion: 3, fun: 3,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: uid(), name: 'Pixel Garden',
+      description: 'A generative art piece that grows a new pixel garden every day based on the weather.',
+      status: 'on-ice', category: 'art',
+      repoUrl: '', liveUrl: '', techStack: ['p5.js', 'Weather API'],
+      notes: 'Blocked on finding a free reliable weather API', dateStarted: '2024-09-15',
+      impact: 2, aifit: 4, excitement: 4, passion: 4, fun: 5,
+      createdAt: new Date().toISOString(),
+    },
+  ];
+}
+
+// ─────────────────────────────────────────────
+//  UTILS
+// ─────────────────────────────────────────────
+function uid() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function priorityScore(p) {
+  const vals = METRICS.map(m => p[m.key] || 0);
+  const filled = vals.filter(v => v > 0).length;
+  if (!filled) return null;
+  const avg = vals.reduce((a, b) => a + b, 0) / filled; // avg out of 5
+  return Math.round(avg * 2 * 10) / 10; // scale to /10
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ─────────────────────────────────────────────
+//  RENDER
+// ─────────────────────────────────────────────
+function renderAll() {
+  renderStats();
+  renderGrid();
+}
+
+function renderStats() {
+  const active  = projects.filter(p => p.status === 'frying-pan').length;
+  const ideas   = projects.filter(p => p.status === 'marinating').length;
+  const shipped = projects.filter(p => p.status === 'served').length;
+  document.getElementById('header-stats').innerHTML = `
+    <div class="stat"><span class="stat-n">${projects.length}</span><div class="stat-l">Total</div></div>
+    <div class="stat"><span class="stat-n">${active}</span><div class="stat-l">Active</div></div>
+    <div class="stat"><span class="stat-n">${ideas}</span><div class="stat-l">Ideas</div></div>
+    <div class="stat"><span class="stat-n">${shipped}</span><div class="stat-l">Shipped</div></div>
+  `;
+}
+
+function getFiltered() {
+  let list = [...projects];
+
+  if (filterStatus !== 'all')   list = list.filter(p => p.status === filterStatus);
+  if (filterCategory !== 'all') list = list.filter(p => p.category === filterCategory);
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    list = list.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      (p.description || '').toLowerCase().includes(q) ||
+      (p.notes || '').toLowerCase().includes(q) ||
+      (p.techStack || []).some(t => t.toLowerCase().includes(q))
+    );
+  }
+
+  const [field, dir] = sortBy.split('-');
+  const asc = dir === 'asc';
+
+  list.sort((a, b) => {
+    let av, bv;
+    if      (field === 'priority')   { av = priorityScore(a) ?? -1; bv = priorityScore(b) ?? -1; }
+    else if (field === 'name')       { av = a.name.toLowerCase(); bv = b.name.toLowerCase(); }
+    else if (field === 'date')       { av = a.dateStarted || ''; bv = b.dateStarted || ''; }
+    else if (METRICS.find(m => m.key === field)) { av = a[field] || 0; bv = b[field] || 0; }
+    else { av = 0; bv = 0; }
+    if (av < bv) return asc ? -1 : 1;
+    if (av > bv) return asc ? 1 : -1;
+    return 0;
+  });
+
+  return list;
+}
+
+function renderGrid() {
+  const list  = getFiltered();
+  const grid  = document.getElementById('project-grid');
+  const count = document.getElementById('results-count');
+
+  count.textContent = list.length !== projects.length
+    ? `Showing ${list.length} of ${projects.length} projects`
+    : `${projects.length} project${projects.length !== 1 ? 's' : ''}`;
+
+  if (!list.length) {
+    grid.innerHTML = `
+      <div class="empty">
+        <span class="empty-icon">🧪</span>
+        <h2>${projects.length ? 'Nothing matches your filters' : 'The lab is empty'}</h2>
+        <p>${projects.length ? 'Try adjusting your filters or search.' : 'Hit "+ New Project" and start cooking.'}</p>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(cardHTML).join('');
+
+  grid.querySelectorAll('[data-edit]').forEach(btn =>
+    btn.addEventListener('click', () => openModal(btn.dataset.edit))
+  );
+  grid.querySelectorAll('[data-del]').forEach(btn =>
+    btn.addEventListener('click', () => deleteProject(btn.dataset.del))
+  );
+}
+
+function cardHTML(p) {
+  const sm    = STATUS_META[p.status] || STATUS_META['marinating'];
+  const score = priorityScore(p);
+  const scoreStr = score !== null ? score.toFixed(1) : '—';
+
+  const statusBadge = `<span class="badge" style="background:${sm.color}1a;color:${sm.color};border:1px solid ${sm.color}33">${sm.label}</span>`;
+  const catBadge    = `<span class="badge badge-cat">${CAT_META[p.category] || CAT_META.other}</span>`;
+
+  const metricBars = METRICS.map(m => {
+    const val  = p[m.key] || 0;
+    const bars = [1,2,3,4,5].map(i => `<div class="cm-bar${i <= val ? ' on' : ''}"></div>`).join('');
+    return `<div class="cm"><span class="cm-icon">${m.icon}</span><div class="cm-bars">${bars}</div></div>`;
+  }).join('');
+
+  const tags = (p.techStack || []).length
+    ? `<div class="tech-tags">${p.techStack.map(t => `<span class="tech-tag">${escHtml(t)}</span>`).join('')}</div>`
+    : '';
+
+  const links = [];
+  if (p.repoUrl) links.push(`<a href="${escHtml(p.repoUrl)}" target="_blank" rel="noopener">repo ↗</a>`);
+  if (p.liveUrl) links.push(`<a href="${escHtml(p.liveUrl)}" target="_blank" rel="noopener">live ↗</a>`);
+  const linksHTML = links.length ? `<div class="card-links">${links.join('')}</div>` : '';
+
+  return `
+    <div class="card" style="--status-clr:${sm.color}">
+      <div class="card-top">
+        <div class="card-title">${escHtml(p.name)}</div>
+        <div class="score-wrap">
+          <div class="priority-score">${scoreStr}</div>
+          <div class="score-label">score</div>
+        </div>
+      </div>
+      <div class="badges">${statusBadge}${catBadge}</div>
+      ${p.description ? `<div class="card-desc">${escHtml(p.description)}</div>` : ''}
+      <div class="card-metrics">${metricBars}</div>
+      ${tags}
+      ${linksHTML}
+      <div class="card-footer">
+        <div class="card-meta">${p.dateStarted ? '📅 ' + fmtDate(p.dateStarted) : ''}</div>
+        <div class="card-actions">
+          <button class="btn-sm" data-edit="${p.id}">Edit</button>
+          <button class="btn-sm del" data-del="${p.id}">Delete</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────
+//  MODAL
+// ─────────────────────────────────────────────
+function openModal(id) {
+  const overlay = document.getElementById('modal-overlay');
+  document.getElementById('project-form').reset();
+  resetStars();
+
+  document.getElementById('modal-title').textContent = id ? 'Edit Project' : 'New Project';
+  document.getElementById('field-id').value = id || '';
+
+  if (id) {
+    const p = projects.find(x => x.id === id);
+    if (p) {
+      document.getElementById('field-name').value     = p.name || '';
+      document.getElementById('field-status').value   = p.status || 'marinating';
+      document.getElementById('field-category').value = p.category || 'other';
+      document.getElementById('field-desc').value     = p.description || '';
+      document.getElementById('field-repo').value     = p.repoUrl || '';
+      document.getElementById('field-url').value      = p.liveUrl || '';
+      document.getElementById('field-tech').value     = (p.techStack || []).join(', ');
+      document.getElementById('field-date').value     = p.dateStarted || '';
+      document.getElementById('field-notes').value    = p.notes || '';
+      METRICS.forEach(m => setStars(m.key, p[m.key] || 0));
+    }
+  }
+
+  overlay.classList.remove('hidden');
+  document.getElementById('field-name').focus();
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+}
+
+// ─────────────────────────────────────────────
+//  STARS
+// ─────────────────────────────────────────────
+function resetStars() {
+  METRICS.forEach(m => { starValues[m.key] = 0; setStars(m.key, 0); });
+}
+
+function setStars(field, val) {
+  starValues[field] = val;
+  const container = document.querySelector(`.stars[data-field="${field}"]`);
+  if (!container) return;
+  container.querySelectorAll('.star').forEach(s =>
+    s.classList.toggle('lit', parseInt(s.dataset.val) <= val)
+  );
+}
+
+// ─────────────────────────────────────────────
+//  SAVE / DELETE
+// ─────────────────────────────────────────────
+function handleSubmit(e) {
+  e.preventDefault();
+  const id      = document.getElementById('field-id').value;
+  const techRaw = document.getElementById('field-tech').value;
+
+  const data = {
+    name:        document.getElementById('field-name').value.trim(),
+    status:      document.getElementById('field-status').value,
+    category:    document.getElementById('field-category').value,
+    description: document.getElementById('field-desc').value.trim(),
+    repoUrl:     document.getElementById('field-repo').value.trim(),
+    liveUrl:     document.getElementById('field-url').value.trim(),
+    techStack:   techRaw.split(',').map(t => t.trim()).filter(Boolean),
+    dateStarted: document.getElementById('field-date').value,
+    notes:       document.getElementById('field-notes').value.trim(),
+    impact:      starValues.impact     || 0,
+    aifit:       starValues.aifit      || 0,
+    excitement:  starValues.excitement || 0,
+    passion:     starValues.passion    || 0,
+    fun:         starValues.fun        || 0,
+  };
+
+  if (id) {
+    const idx = projects.findIndex(p => p.id === id);
+    if (idx >= 0) projects[idx] = { ...projects[idx], ...data, updatedAt: new Date().toISOString() };
+  } else {
+    projects.unshift({ id: uid(), ...data, createdAt: new Date().toISOString() });
+  }
+
+  saveProjects();
+  closeModal();
+  renderAll();
+}
+
+function deleteProject(id) {
+  if (!confirm('Delete this project? Can\'t be undone.')) return;
+  projects = projects.filter(p => p.id !== id);
+  saveProjects();
+  renderAll();
+}
+
+// ─────────────────────────────────────────────
+//  EVENT LISTENERS
+// ─────────────────────────────────────────────
+document.getElementById('btn-add').addEventListener('click', () => openModal());
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('btn-cancel').addEventListener('click', closeModal);
+document.getElementById('project-form').addEventListener('submit', handleSubmit);
+
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+document.getElementById('search-input').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  renderGrid();
+});
+
+document.getElementById('sort-select').addEventListener('change', e => {
+  sortBy = e.target.value;
+  renderGrid();
+});
+
+document.querySelectorAll('.pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    const { filter, value } = pill.dataset;
+    if (filter === 'status') {
+      filterStatus = value;
+      document.querySelectorAll('[data-filter="status"]').forEach(p => p.classList.remove('active'));
+    } else {
+      filterCategory = value;
+      document.querySelectorAll('[data-filter="category"]').forEach(p => p.classList.remove('active'));
+    }
+    pill.classList.add('active');
+    renderGrid();
+  });
+});
+
+// Star interactions
+document.querySelectorAll('.stars').forEach(container => {
+  const field = container.dataset.field;
+  container.querySelectorAll('.star').forEach(star => {
+    star.addEventListener('click', () => {
+      const val    = parseInt(star.dataset.val);
+      const newVal = starValues[field] === val ? 0 : val; // click same = clear
+      setStars(field, newVal);
+    });
+    star.addEventListener('mouseenter', () => {
+      const val = parseInt(star.dataset.val);
+      container.querySelectorAll('.star').forEach(s =>
+        s.classList.toggle('lit', parseInt(s.dataset.val) <= val)
+      );
+    });
+    star.addEventListener('mouseleave', () => {
+      setStars(field, starValues[field] || 0);
+    });
+  });
+});
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+loadProjects();
+renderAll();
+</script>
+</body>
+</html>
